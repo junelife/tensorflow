@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -45,6 +46,25 @@ public final class InterpreterTest {
   public void testInterpreter() throws Exception {
     Interpreter interpreter = new Interpreter(MODEL_FILE);
     assertThat(interpreter).isNotNull();
+    interpreter.close();
+  }
+
+  @Test
+  public void testRunWithByteBufferModel() throws Exception {
+    Path path = MODEL_FILE.toPath();
+    byte[] bytes = Files.readAllBytes(path);
+    ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+    byteBuffer.put(bytes);
+    Interpreter interpreter = new Interpreter(byteBuffer);
+    float[] oneD = {1.23f, 6.54f, 7.81f};
+    float[][] twoD = {oneD, oneD, oneD, oneD, oneD, oneD, oneD, oneD};
+    float[][][] threeD = {twoD, twoD, twoD, twoD, twoD, twoD, twoD, twoD};
+    float[][][][] fourD = {threeD, threeD};
+    float[][][][] parsedOutputs = new float[2][8][8][3];
+    interpreter.run(fourD, parsedOutputs);
+    float[] outputOneD = parsedOutputs[0][0][0];
+    float[] expected = {3.69f, 19.62f, 23.43f};
+    assertThat(outputOneD).usingTolerance(0.1f).containsExactly(expected).inOrder();
     interpreter.close();
   }
 

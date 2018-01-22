@@ -16,7 +16,7 @@ limitations under the License.
 package org.tensorflow.lite;
 
 import java.io.File;
-import java.nio.MappedByteBuffer;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import javax.validation.constraints.NotNull;
@@ -68,13 +68,13 @@ public final class Interpreter implements AutoCloseable {
   }
 
   /**
-   * Initializes a {@code Interpreter} with a {@code MappedByteBuffer} to the model file.
+   * Initializes a {@code Interpreter} with a direct {@code ByteBuffer} to the model file.
    *
-   * <p>The {@code MappedByteBuffer} should remain unchanged after the construction of a {@code
+   * <p>The {@code ByteBuffer} should remain unchanged after the construction of a {@code
    * Interpreter}.
    */
-  public Interpreter(@NotNull MappedByteBuffer mappedByteBuffer) {
-    wrapper = new NativeInterpreterWrapper(mappedByteBuffer);
+  public Interpreter(@NotNull ByteBuffer byteBuffer) {
+    wrapper = new NativeInterpreterWrapper(byteBuffer);
   }
 
   /**

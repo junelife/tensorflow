@@ -18,7 +18,7 @@ package org.tensorflow.lite;
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,12 +38,16 @@ final class NativeInterpreterWrapper implements AutoCloseable {
   }
 
   /**
-   * Initializes a {@code NativeInterpreterWrapper} with a {@code MappedByteBuffer}. The
-   * MappedByteBuffer should not be modified after the construction of a {@code
+   * Initializes a {@code NativeInterpreterWrapper} with a direct {@code ByteBuffer}. The
+   * ByteBuffer should not be modified after the construction of a {@code
    * NativeInterpreterWrapper}.
    */
-  NativeInterpreterWrapper(MappedByteBuffer mappedByteBuffer) {
-    modelByteBuffer = mappedByteBuffer;
+  NativeInterpreterWrapper(ByteBuffer byteBuffer) {
+    if (!byteBuffer.isDirect()) {
+      throw new IllegalArgumentException(
+          "Invalid ByteBuffer. It shoud use direct buffer.");
+    }
+    modelByteBuffer = byteBuffer;
     errorHandle = createErrorReporter(ERROR_BUFFER_SIZE);
     modelHandle = createModelWithBuffer(modelByteBuffer, errorHandle);
     interpreterHandle = createInterpreter(modelHandle, errorHandle);
@@ -246,7 +250,7 @@ final class NativeInterpreterWrapper implements AutoCloseable {
 
   private int inputSize;
 
-  private MappedByteBuffer modelByteBuffer;
+  private ByteBuffer modelByteBuffer;
 
   private Map<String, Integer> inputsIndexes;
 
@@ -262,7 +266,7 @@ final class NativeInterpreterWrapper implements AutoCloseable {
 
   private static native long createModel(String modelPathOrBuffer, long errorHandle);
 
-  private static native long createModelWithBuffer(MappedByteBuffer modelBuffer, long errorHandle);
+  private static native long createModelWithBuffer(ByteBuffer modelBuffer, long errorHandle);
 
   private static native long createInterpreter(long modelHandle, long errorHandle);
 
